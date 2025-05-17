@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Document Research & Theme Identification Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            min-height: 100vh;
+            padding: 2rem;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+        .file-badge {
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+        .uploaded-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .textarea-question {
+            resize: vertical;
+        }
+        .loading-spinner {
+            display: none;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mb-4 text-primary fw-bold">Document Research & Theme Identification Chatbot</h1>
+
+    <div class="row g-4">
+        <!-- Left Panel: Upload & Documents -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Upload Documents</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <input type="file" name="file" multiple required class="form-control mb-3" accept=".pdf,image/*,.txt" />
+                        <button type="submit" class="btn btn-primary w-100">Upload</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Uploaded Documents</h5>
+                    <small class="text-white-50">({{ documents|length if documents else 0 }})</small>
+                </div>
+                <div class="card-body uploaded-list">
+                    {% if documents %}
+                        <ul class="list-group">
+                            {% for doc_id, filename in documents %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    {{ filename }}
+                                    {% if filename.endswith('.pdf') %}
+                                        <span class="badge bg-danger file-badge">PDF</span>
+                                    {% elif filename.endswith('.txt') %}
+                                        <span class="badge bg-info file-badge">TXT</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark file-badge">IMG</span>
+                                    {% endif %}
+                                    <br />
+                                    <small class="text-muted">ID: {{ doc_id }}</small>
+                                </div>
+                                <form action="{{ url_for('delete_document', doc_id=doc_id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this document?');" style="margin:0;">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No documents uploaded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Query & Response -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Ask a Question</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/" id="questionForm">
+                        <div class="mb-3">
+                            <label for="question" class="form-label">Your Question:</label>
+                            <textarea name="question" id="question" class="form-control textarea-question" rows="5" placeholder="Type your question here..." required>{{ user_question or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Documents to Include:</label>
+                            <div style="max-height: 180px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 10px;">
+                                {% if documents %}
+                                    {% for doc_id, filename in documents %}
+                                    <div class="form-check mb-1">
+                                        <input class="form-check-input" type="checkbox" name="selected_docs" value="{{ doc_id }}" checked id="doc{{ doc_id }}" />
+                                        <label class="form-check-label" for="doc{{ doc_id }}">
+                                            {{ filename }} <small class="text-muted">(ID: {{ doc_id }})</small>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">No documents available to select.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            Submit
+                            <span class="spinner-border spinner-border-sm loading-spinner" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if user_question %}
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <strong>You asked:</strong> {{ user_question }}
+                </div>
+                <div class="card-body">
+                    <p><strong>Answer:</strong> {{ bot_response }}</p>
+
+                    {% if source_documents %}
+                    <hr />
+                    <h6>Sources:</h6>
+                    <ul class="list-unstyled">
+                        {% for src in source_documents %}
+                        <li><strong>{{ src.doc_id }}</strong> - {{ src.source }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show loading spinner on form submit
+    document.getElementById('questionForm').addEventListener('submit', function() {
+        this.querySelector('.loading-spinner').style.display = 'inline-block';
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', function() {
+        this.querySelector('button[type="submit"]').disabled = true;
+    });
+</script>
+</body>
+</html>
