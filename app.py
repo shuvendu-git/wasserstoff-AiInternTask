@@ -191,7 +191,7 @@ def index():
         synthetic_query = f"What are the common themes across these documents? {user_question}"
         
         # Get LLM-based response
-        response = qa_chain.invoke(synthetic_query)
+        response = qa_chain.invoke({"query": synthetic_query})
         bot_response = response['result']
 
         # Extract citation metadata
