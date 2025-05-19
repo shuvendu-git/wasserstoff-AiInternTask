@@ -7,7 +7,8 @@ from langchain_pinecone import PineconeVectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain.retrievers.multi_query import MultiQueryRetriever
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings
 from google.generativeai.types.safety_types import HarmBlockThreshold, HarmCategory
 import os
 import warnings
@@ -190,7 +191,7 @@ def index():
         synthetic_query = f"What are the common themes across these documents? {user_question}"
         
         # Get LLM-based response
-        response = qa_chain.invoke({"query": synthetic_query, "context": combined_context})
+        response = qa_chain.invoke(synthetic_query)
         bot_response = response['result']
 
         # Extract citation metadata
