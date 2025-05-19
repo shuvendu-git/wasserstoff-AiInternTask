@@ -94,12 +94,12 @@ def initialize_qa_system():
     # Generate embeddings using Google Gemini
     embeddings = GoogleGenerativeAIEmbeddings(
         model='models/embedding-001',
-        google_api_key='AIzaSyBW9OS7P95Rw5zswVkYIAkJjM1Rcpljto0',
+        google_api_key="AIzaSyBW9OS7P95Rw5zswVkYIAkJjM1Rcpljto0",
         task_type="retrieval_query"
     )
 
     # Store vectors in Pinecone
-    os.environ['PINECONE_API_KEY'] = 'pcsk_KQWq2_9v4Axog6B5hpfbk3RZtnx24HMziXBwzChJNvvsGqYwtG4X1yFRsUyEU6vLjVDab'
+    os.environ['PINECONE_API_KEY'] = "pcsk_KQWq2_9v4Axog6B5hpfbk3RZtnx24HMziXBwzChJNvvsGqYwtG4X1yFRsUyEU6vLjVDab"
     index_name = "rag-index"
     vectordb = PineconeVectorStore.from_documents(split_docs, embeddings, index_name=index_name)
 
@@ -122,10 +122,10 @@ def initialize_qa_system():
 
     chat_model = ChatGoogleGenerativeAI(
         model="gemini-1.5-flash",
-        google_api_key='AIzaSyBW9OS7P95Rw5zswVkYIAkJjM1Rcpljto0',
+        google_api_key="AIzaSyBW9OS7P95Rw5zswVkYIAkJjM1Rcpljto0",
         temperature=0.5,
         safety_settings=safety_settings
-    )
+)
 
     # Enhance retrieval using multiple LLM queries
     retriever_from_llm = MultiQueryRetriever.from_llm(
@@ -260,4 +260,7 @@ def delete_document(doc_id):
 
 # Start Flask server
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
